@@ -1,0 +1,28 @@
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+.pulse { animation: pulse 2s infinite; }
+
+.navbar{
+    
+    background: rgb(1, 3, 3) !important;
+    font-size: large;
+    font-weight: 800;
+}
+
+body{
+    background: linear-gradient(to right, #1f1c2c, #928dab);
+}
+footer{
+    margin-top: 5rem !important;
+}
+.fa{
+    color: green;
+    font-size: larger;
+}
+
+.log{
+    background-color:linear-gradient(to right, #1f1c2c, #928dab) !important;
+}
