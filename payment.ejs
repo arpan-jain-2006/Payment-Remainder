@@ -1,0 +1,64 @@
+<%- layout("/layouts/boilerplate") %>
+
+<div class="container py-5 d-flex justify-content-center align-items-center min-vh-100 bg-light" style="background: linear-gradient(to right, #1f1c2c, #928dab) ;">
+  <div class="card shadow-lg border-0 p-4" style="max-width: 500px; width: 100%; animation: fadeIn 1s;">
+    <h3 class="text-center text-primary mb-4"><i class="fas fa-credit-card"></i> Complete Payment</h3>
+
+    <ul class="list-group mb-4">
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>Name:</strong> <span><%= customer.name %></span>
+      </li>
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>Amount:</strong> <span>₹<%= customer.amount %></span>
+      </li>
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>Due Date:</strong> <span><%= customer.dueDate %></span>
+      </li>
+    </ul>
+
+
+    <button id="rzp-button" class="btn btn-success btn-lg w-100">
+      <i class="fas fa-bolt me-2"></i>Pay Now via Razorpay
+    </button>
+  </div>
+</div>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+    
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script>
+  const options = {
+    key: "rzp_test_qgBSz9RS4BfPv7", // rozarpay test key
+    amount: "<%= customer.amount * 100 %>",
+    currency: "INR",
+    name: "Payment Reminder App",
+    description: "Payment for <%= customer.name %> (Pending: ₹<%= customer.amount %>)",
+    handler: function(response) {
+      alert(`Payment of ₹<%= customer.amount %> successful! ID: ${response.razorpay_payment_id}`);
+      window.location.href = `/pay-success/<%= customer._id %>?payment_id=${response.razorpay_payment_id}`;
+    },
+    prefill: {
+      name: "<%= customer.name %>",
+      email: "<%= customer.email || 'test@example.com' %>" 
+    },
+    theme: { color: "#6D28D9" }
+  };
+
+  document.getElementById('rzp-button').onclick = function(e) {
+    console.log("Payment Options:", options);
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function(response) {
+      alert(`Payment of ₹<%= customer.amount %> failed! Reason: ${response.error.description}`);
+    });
+    rzp.open();
+    e.preventDefault();
+  };
+</script>
+
+</div>

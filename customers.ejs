@@ -1,0 +1,48 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container my-5 animate__animated animate__fadeIn">
+  <h2 class="fw-bold display-6 text-center text-primary mb-4">📋 Customer List</h2>
+
+  <% if (customers.length > 0) { %>
+    <div class="table-responsive shadow rounded-4 overflow-hidden">
+      <table class="table table-striped table-hover align-middle text-center mb-0">
+        <thead class="table-primary text-dark">
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Due Date</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% customers.forEach(customer => { %>
+            <tr>
+              <td><%= customer.name %></td>
+              <td><%= customer.email %></td>
+              <td><%= customer.dueDate %></td>
+              <td>₹<%= customer.amount %></td>
+              <td>
+                <span class="badge rounded-pill px-3 py-2 fw-semibold 
+                  <%= customer.isPaid ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' %>">
+                  <%= customer.isPaid ? 'Paid' : 'Pending' %>
+                </span>
+              </td>
+              <td>
+                <a href="/pay/<%= customer._id %>" class="btn btn-sm btn-primary shadow-sm">
+                  Pay Now 💳
+                </a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <div class="alert alert-info text-center mt-4" role="alert">
+      No customers found. <a href="/add" class="alert-link">Add one now!</a>
+    </div>
+  <% } %>
+</div>

@@ -1,0 +1,82 @@
+<% layout("/layouts/boilerplate") %>
+  <style>
+    body {
+      background: linear-gradient(to right, #1f1c2c, #928dab);
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      color: white;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .dashboard-icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container py-5">
+  <h2 class="text-center text-white mb-5 display-5 fw-bold">🚀 Welcome back, Arpan!</h2>
+
+ 
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="glass-card text-center p-4">
+        <i class="fas fa-bell dashboard-icon"></i>
+        <h5>Upcoming Reminders</h5>
+        <h2 class="fw-bold">8</h2>
+        <p class="mb-0">Set for this week</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="glass-card text-center p-4">
+        <i class="fas fa-wallet dashboard-icon"></i>
+        <h5>Pending Dues</h5>
+        <h2 class="fw-bold">₹100000</h2>
+        <p class="mb-0">Due by 30th June</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="glass-card text-center p-4">
+        <i class="fas fa-clock dashboard-icon"></i>
+        <h5>Last Payment</h5>
+        <h2 class="fw-bold">₹8000</h2>
+        <p class="mb-0">Paid on 22 June</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="glass-card text-center p-4">
+        <i class="fas fa-chart-line dashboard-icon"></i>
+        <h5>Monthly Spend</h5>
+        <h2 class="fw-bold">₹9000</h2>
+        <p class="mb-0">So far in June</p>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="row mb-5">
+    <div class="col text-center">
+      <a href="/add" class="btn btn-outline-light btn-lg m-2"><i class="fas fa-plus"></i> Add Reminder</a>
+      <a href="/customers" class="btn btn-light btn-lg m-2"><i class="fas fa-history"></i> View History</a>
+      <a href="#" class="btn btn-warning btn-lg m-2"><i class="fas fa-user-cog"></i> Settings</a>
+    </div>
+  </div>
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

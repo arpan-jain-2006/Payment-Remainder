@@ -1,0 +1,39 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container mt-5 animate__animated animate__fadeInUp">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow border-0 rounded-4">
+        <div class="card-body p-4">
+          <h2 class="text-center text-primary fw-bold mb-4">➕ Add New Customer</h2>
+
+          <form action="/add" method="POST" novalidate>
+            <div class="mb-3">
+              <label for="name" class="form-label">Full Name</label>
+              <input type="text" class="form-control rounded-pill" id="name" name="name" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="email" class="form-label">Email Address</label>
+              <input type="email" class="form-control rounded-pill" id="email" name="email" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="dueDate" class="form-label">Due Date</label>
+              <input type="date" class="form-control rounded-pill" id="dueDate" name="dueDate" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="amount" class="form-label">Amount (₹)</label>
+              <input type="number" class="form-control rounded-pill" id="amount" name="amount" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 rounded-pill fw-semibold shadow-sm">
+              ➕ Add Customer
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

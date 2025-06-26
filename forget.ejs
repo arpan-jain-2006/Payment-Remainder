@@ -1,0 +1,43 @@
+<% layout("/layouts/boilerplate") %>
+
+<section class=" log min-vh-100 d-flex align-items-center bg-light" style="background: linear-gradient(to right, #1f1c2c, #928dab);">
+  <div class="container" style="background: linear-gradient(to right, #1f1c2c, #928dab);">
+    <div class="row justify-content-center" style="background: linear-gradient(to right, #1f1c2c, #928dab);">
+      <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0 rounded-4">
+          <div class="card-body p-5">
+            <h2 class="text-center mb-4 fw-bold text-primary">Login Your Account Here</h2>
+
+            <form action="/forget" method="POST">
+              <div class="mb-3">
+                <label for="number" class="form-label">Mobile No</label>
+                <input type="number" class="form-control rounded-pill" id="number" name="number" required>
+              </div>
+
+                <div class="mb-3">
+                <label for="OTP" class="form-label">OTP</label>
+                <input type="number" class="form-control rounded-pill" id="OTP" name="OTP" required>
+              </div>
+
+              <div class="mb-4 form-check">
+                <input class="form-check-input" type="checkbox" id="terms" required>
+                <label class="form-check-label" for="terms">
+                  I agree to the <a href="/terms" class="text-decoration-none text-primary">terms & conditions</a>
+                </label>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill shadow-sm">
+                Submit 🚀
+              </button>
+            </form>
+
+            <!-- <p class="mt-4 text-center text-muted">
+              change password?..
+              <a href="/forget" class="text-decoration-none text-primary fw-semibold">Forget Password</a>
+            </p> -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
