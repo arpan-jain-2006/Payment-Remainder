@@ -1,0 +1,185 @@
+<% layout("layouts/boilerplate") %>
+
+<div class="container py-2">
+  <!-- Page Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold text-white mb-1">
+        <i class="fa-solid fa-users text-primary me-2"></i> Customer Directory & Invoices
+      </h2>
+      <p class="text-secondary mb-0">Manage customer payment schedules, track dues, and dispatch email reminders.</p>
+    </div>
+    <a href="/add" class="btn btn-primary-gradient rounded-pill px-4 py-2 d-flex align-items-center gap-2">
+      <i class="fa-solid fa-plus"></i>
+      <span>Add New Reminder</span>
+    </a>
+  </div>
+
+  <!-- Filters & Live Search Bar -->
+  <div class="glass-card p-3 mb-4">
+    <div class="row g-3 align-items-center">
+      <!-- Status Tabs -->
+      <div class="col-lg-7 d-flex flex-wrap gap-2">
+        <a href="/customers?status=all" class="filter-pill <%= status === 'all' ? 'active' : '' %>">
+          <span>All</span>
+          <span class="badge bg-secondary rounded-pill"><%= counts.totalCount %></span>
+        </a>
+        <a href="/customers?status=pending" class="filter-pill <%= status === 'pending' ? 'active' : '' %>">
+          <i class="fa-solid fa-clock text-warning"></i>
+          <span>Pending</span>
+          <span class="badge bg-warning bg-opacity-25 text-warning rounded-pill"><%= counts.pendingCount %></span>
+        </a>
+        <a href="/customers?status=overdue" class="filter-pill <%= status === 'overdue' ? 'active' : '' %>">
+          <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+          <span>Overdue</span>
+          <span class="badge bg-danger bg-opacity-25 text-danger rounded-pill"><%= counts.overdueCount %></span>
+        </a>
+        <a href="/customers?status=paid" class="filter-pill <%= status === 'paid' ? 'active' : '' %>">
+          <i class="fa-solid fa-circle-check text-success"></i>
+          <span>Paid</span>
+          <span class="badge bg-success bg-opacity-25 text-success rounded-pill"><%= counts.paidCount %></span>
+        </a>
+      </div>
+
+      <!-- Quick Search Input -->
+      <div class="col-lg-5">
+        <div class="position-relative form-dark">
+          <i class="fa-solid fa-magnifying-glass position-absolute text-secondary" style="left: 15px; top: 14px;"></i>
+          <input type="text" id="tableSearchInput" class="form-control rounded-pill ps-5" placeholder="Instant search by name, email, or phone...">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customers Table -->
+  <div class="glass-card p-0 custom-table-container">
+    <% if (customers.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table custom-table align-middle text-start">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Due Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Reminders</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% customers.forEach(customer => { %>
+              <tr class="customer-row">
+                <!-- Customer Name & Contact -->
+                <td>
+                  <div class="fw-bold text-white fs-6"><%= customer.name %></div>
+                  <div class="text-secondary small d-flex flex-wrap gap-2">
+                    <span><i class="fa-regular fa-envelope me-1"></i><%= customer.email %></span>
+                    <% if (customer.phone) { %>
+                      <span><i class="fa-solid fa-phone me-1"></i><%= customer.phone %></span>
+                    <% } %>
+                  </div>
+                </td>
+
+                <!-- Due Date -->
+                <td>
+                  <div class="fw-semibold text-white"><%= customer.formattedDueDate %></div>
+                  <% if (customer.isOverdue) { %>
+                    <div class="text-danger small fw-semibold">Expired</div>
+                  <% } else if (!customer.isPaid) { %>
+                    <div class="text-secondary small">Upcoming</div>
+                  <% } %>
+                </td>
+
+                <!-- Amount -->
+                <td>
+                  <div class="fw-bold text-white fs-6">₹<%= formatINR(customer.amount) %></div>
+                  <% if (customer.notes) { %>
+                    <div class="text-secondary small text-truncate" style="max-width: 150px;"><%= customer.notes %></div>
+                  <% } %>
+                </td>
+
+                <!-- Status Badge -->
+                <td>
+                  <% if (customer.isPaid) { %>
+                    <span class="badge-status badge-paid">
+                      <i class="fa-solid fa-check"></i> Paid
+                    </span>
+                  <% } else if (customer.isOverdue) { %>
+                    <span class="badge-status badge-overdue">
+                      <i class="fa-solid fa-triangle-exclamation"></i> Overdue
+                    </span>
+                  <% } else { %>
+                    <span class="badge-status badge-pending">
+                      <i class="fa-solid fa-clock"></i> Pending
+                    </span>
+                  <% } %>
+                </td>
+
+                <!-- Reminder Count & Action -->
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <span id="reminder-badge-<%= customer._id %>" 
+                          data-count="<%= customer.reminderCount || 0 %>"
+                          class="badge rounded-pill bg-dark border border-secondary text-secondary <%= (customer.reminderCount > 0) ? '' : 'd-none' %>">
+                      <i class="fa-solid fa-paper-plane me-1"></i> Sent (<%= customer.reminderCount || 0 %>)
+                    </span>
+                    <% if (!customer.isPaid) { %>
+                      <button class="btn btn-sm btn-outline-warning rounded-pill px-2 py-1" 
+                              title="Send Email Reminder Now"
+                              onclick="sendReminderAjax('<%= customer._id %>', this)">
+                        <i class="fa-solid fa-bell me-1"></i> Send Alert
+                      </button>
+                    <% } %>
+                  </div>
+                </td>
+
+                <!-- Actions -->
+                <td class="text-end">
+                  <div class="d-inline-flex align-items-center gap-2">
+                    <% if (!customer.isPaid) { %>
+                      <a href="/pay/<%= customer._id %>" class="btn btn-sm btn-success-gradient rounded-pill px-3 py-1">
+                        <i class="fa-solid fa-bolt me-1"></i> Pay
+                      </a>
+                    <% } else { %>
+                      <a href="/pay-success/<%= customer._id %>" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" title="View Receipt">
+                        <i class="fa-solid fa-receipt"></i>
+                      </a>
+                    <% } %>
+
+                    <a href="/customers/<%= customer._id %>/edit" class="btn btn-sm btn-outline-light rounded-pill px-2 py-1" title="Edit Customer">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </a>
+
+                    <form id="delete-form-<%= customer._id %>" action="/customers/<%= customer._id %>/delete" method="POST" class="d-inline">
+                      <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" title="Delete" onclick="confirmDelete('<%= customer.name %>', 'delete-form-<%= customer._id %>')">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+
+            <tr id="noMatchRow" style="display: none;">
+              <td colspan="6" class="text-center py-5 text-secondary">
+                <i class="fa-solid fa-magnifying-glass fs-2 mb-2"></i>
+                <p class="mb-0">No matching customers found for your search query.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="text-center py-5">
+        <div class="rounded-circle d-inline-flex p-4 mb-3" style="background: rgba(99, 102, 241, 0.1);">
+          <i class="fa-solid fa-users-slash fs-1 text-primary"></i>
+        </div>
+        <h4 class="text-white fw-bold">No customers found</h4>
+        <p class="text-secondary mb-4">No records found under this filter.</p>
+        <a href="/add" class="btn btn-primary-gradient rounded-pill px-4 py-2">
+          <i class="fa-solid fa-plus me-1"></i> Add First Customer
+        </a>
+      </div>
+    <% } %>
+  </div>
+</div>
