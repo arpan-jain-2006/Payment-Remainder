@@ -1,0 +1,165 @@
+<% layout("layouts/boilerplate") %>
+
+<div class="container py-5 min-vh-75 d-flex align-items-center justify-content-center">
+  <div class="row justify-content-center w-100">
+    <div class="col-md-8 col-lg-5">
+      <div class="glass-card p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="rounded-circle d-inline-flex p-3 mb-2" style="background: rgba(16, 185, 129, 0.15);">
+            <i class="fa-solid fa-credit-card fs-3 text-success"></i>
+          </div>
+          <h3 class="fw-bold text-white mb-1">Invoice Payment</h3>
+          <p class="text-secondary small">Pay securely via Razorpay, UPI, Cards, or Netbanking.</p>
+        </div>
+
+        <!-- Invoice Breakdown -->
+        <div class="p-3 rounded-3 mb-4" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08);">
+          <div class="d-flex justify-content-between mb-2 small text-secondary">
+            <span>Customer Name:</span>
+            <span class="text-white fw-semibold"><%= customer.name %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-2 small text-secondary">
+            <span>Email Address:</span>
+            <span class="text-white"><%= customer.email %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-2 small text-secondary">
+            <span>Due Date:</span>
+            <span class="text-white"><%= customer.formattedDueDate %></span>
+          </div>
+          <% if (customer.notes) { %>
+            <div class="d-flex justify-content-between mb-2 small text-secondary">
+              <span>Description:</span>
+              <span class="text-white"><%= customer.notes %></span>
+            </div>
+          <% } %>
+          <hr style="border-color: rgba(255,255,255,0.1); margin: 12px 0;">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="text-secondary fw-semibold">Total Payable:</span>
+            <span class="fs-4 fw-bolder text-success">₹<%= formatINR(customer.amount) %></span>
+          </div>
+        </div>
+
+        <% if (customer.isPaid) { %>
+          <div class="alert alert-success text-center rounded-3">
+            <i class="fa-solid fa-circle-check fs-4 mb-2 d-block"></i>
+            <strong>This invoice is already settled!</strong>
+            <div class="mt-2">
+              <a href="/pay-success/<%= customer._id %>" class="btn btn-sm btn-outline-success rounded-pill px-3">View Receipt</a>
+            </div>
+          </div>
+        <% } else { %>
+          <button id="rzp-button" class="btn btn-success-gradient w-100 py-3 rounded-pill fw-bold fs-6 mb-3 d-flex align-items-center justify-content-center gap-2">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Pay ₹<%= formatINR(customer.amount) %> via Razorpay</span>
+          </button>
+
+          <!-- Quick Test / Direct Payment Option -->
+          <div class="text-center pt-2 border-top border-secondary border-opacity-25">
+            <button id="direct-pay-button" class="btn btn-outline-light btn-sm rounded-pill px-4">
+              <i class="fa-solid fa-circle-check text-success me-1"></i> Quick Test Payment (Simulate Success)
+            </button>
+            <div class="small text-secondary mt-1">Useful for local testing without test cards</div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  const customerId = "<%= customer._id %>";
+  const amountPaise = <%= Math.round(customer.amount * 100) %>;
+  const customerName = "<%= customer.name %>";
+  const customerEmail = "<%= customer.email %>";
+  const rzpKey = "<%= rzpKey %>";
+
+  const rzpBtn = document.getElementById('rzp-button');
+  if (rzpBtn) {
+    rzpBtn.onclick = async function(e) {
+      e.preventDefault();
+      rzpBtn.disabled = true;
+      rzpBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Launching Gateway...';
+
+      try {
+        // Step 1: Create Order on backend
+        const orderRes = await fetch(`/pay/create-order/${customerId}`, { method: 'POST' });
+        const orderData = await orderRes.json();
+
+        const options = {
+          key: orderData.key || rzpKey,
+          amount: orderData.amount || amountPaise,
+          currency: "INR",
+          name: "RemindPro Invoicing",
+          description: "Payment for " + customerName,
+          order_id: orderData.orderId && !orderData.orderId.startsWith('order_sim_') ? orderData.orderId : undefined,
+          handler: async function(response) {
+            Swal.fire({
+              title: 'Verifying Payment...',
+              text: 'Please wait while we record your transaction.',
+              allowOutsideClick: false,
+              didOpen: () => Swal.showLoading()
+            });
+
+            // Verify with backend
+            const verifyRes = await fetch(`/pay/verify/${customerId}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                method: 'Razorpay Gateway'
+              })
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              window.location.href = verifyData.redirectUrl;
+            } else {
+              Swal.fire('Error', verifyData.message || 'Verification failed', 'error');
+            }
+          },
+          prefill: {
+            name: customerName,
+            email: customerEmail
+          },
+          theme: { color: "#6366f1" }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function(resp) {
+          Swal.fire('Payment Failed', resp.error.description || 'Transaction unsuccessful', 'error');
+        });
+        rzp.open();
+      } catch (err) {
+        Swal.fire('Gateway Error', 'Could not initialize payment gateway. You can use Quick Test Payment.', 'error');
+      } finally {
+        rzpBtn.disabled = false;
+        rzpBtn.innerHTML = '<i class="fa-solid fa-bolt me-2"></i> Pay ₹<%= formatINR(customer.amount) %> via Razorpay';
+      }
+    };
+  }
+
+  // Quick Direct Payment Simulator
+  const directBtn = document.getElementById('direct-pay-button');
+  if (directBtn) {
+    directBtn.onclick = async function() {
+      const confirmResult = await Swal.fire({
+        title: 'Complete Test Payment?',
+        text: 'This will mark the ₹<%= formatINR(customer.amount) %> invoice as PAID in the database.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Mark Paid',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#475569',
+        background: '#1e293b',
+        color: '#f8fafc'
+      });
+
+      if (confirmResult.isConfirmed) {
+        window.location.href = `/pay-success/${customerId}?payment_id=SIM_${Date.now()}`;
+      }
+    };
+  }
+</script>

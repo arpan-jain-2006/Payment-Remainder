@@ -1,0 +1,32 @@
+<% layout("layouts/boilerplate") %>
+
+<div class="container py-5 min-vh-75 d-flex align-items-center justify-content-center">
+  <div class="row justify-content-center w-100">
+    <div class="col-md-7 col-lg-5">
+      <div class="glass-card p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="rounded-circle d-inline-flex p-3 mb-2" style="background: rgba(245, 158, 11, 0.15);">
+            <i class="fa-solid fa-key fs-3 text-warning"></i>
+          </div>
+          <h3 class="fw-bold text-white mb-1">Reset Password</h3>
+          <p class="text-secondary small">Enter your email or phone number to receive a verification OTP.</p>
+        </div>
+
+        <form action="/forget" method="POST" class="form-dark">
+          <div class="mb-3">
+            <label for="identifier"><i class="fa-solid fa-envelope me-1 text-primary"></i> Registered Email / Phone</label>
+            <input type="text" class="form-control" id="identifier" name="identifier" placeholder="Email or 10-digit mobile number" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary-gradient w-100 py-3 rounded-pill fw-bold fs-6 mb-3">
+            <i class="fa-solid fa-paper-plane me-1"></i> Send Reset Link
+          </button>
+        </form>
+
+        <p class="text-center text-secondary small mb-0">
+          Remembered password? <a href="/login" class="text-primary text-decoration-none fw-semibold">Back to Login</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

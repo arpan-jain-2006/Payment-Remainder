@@ -1,0 +1,184 @@
+<% layout("layouts/boilerplate") %>
+
+<div class="container py-2">
+  <!-- Top Greeting & Actions -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold text-white mb-1">
+        <i class="fa-solid fa-chart-line text-primary me-2"></i> Financial Overview & Dues
+      </h2>
+      <p class="text-secondary mb-0">Monitor cash flow, track pending customer liabilities, and trigger automated reminders.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/add" class="btn btn-primary-gradient rounded-pill px-4">
+        <i class="fa-solid fa-plus me-1"></i> Add Reminder
+      </a>
+      <a href="/customers" class="btn btn-outline-light rounded-pill px-3">
+        <i class="fa-solid fa-users me-1"></i> View All Customers
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Analytics Row -->
+  <div class="row g-4 mb-4">
+    <!-- Pending Dues -->
+    <div class="col-md-6 col-lg-3">
+      <div class="glass-card kpi-card kpi-pending h-100">
+        <div class="kpi-icon">
+          <i class="fa-solid fa-hourglass-half"></i>
+        </div>
+        <div class="text-secondary small text-uppercase fw-bold letter-spacing">Pending Dues</div>
+        <div class="fs-3 fw-bolder text-warning my-1">₹<%= formatINR(stats.totalPendingAmount) %></div>
+        <div class="small text-secondary">
+          <span class="text-warning fw-semibold"><%= stats.pendingCount %></span> customer(s) pending
+        </div>
+      </div>
+    </div>
+
+    <!-- Collected Payments -->
+    <div class="col-md-6 col-lg-3">
+      <div class="glass-card kpi-card kpi-collected h-100">
+        <div class="kpi-icon">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="text-secondary small text-uppercase fw-bold letter-spacing">Total Collected</div>
+        <div class="fs-3 fw-bolder text-success my-1">₹<%= formatINR(stats.totalCollectedAmount) %></div>
+        <div class="small text-secondary">
+          <span class="text-success fw-semibold"><%= stats.paidCount %></span> settled transaction(s)
+        </div>
+      </div>
+    </div>
+
+    <!-- Overdue Dues -->
+    <div class="col-md-6 col-lg-3">
+      <div class="glass-card kpi-card kpi-overdue h-100">
+        <div class="kpi-icon">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="text-secondary small text-uppercase fw-bold letter-spacing">Overdue Balance</div>
+        <div class="fs-3 fw-bolder text-danger my-1">₹<%= formatINR(stats.overdueAmount) %></div>
+        <div class="small text-secondary">
+          <span class="text-danger fw-semibold"><%= stats.overdueCount %></span> past due date
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming (Next 7 Days) -->
+    <div class="col-md-6 col-lg-3">
+      <div class="glass-card kpi-card kpi-upcoming h-100">
+        <div class="kpi-icon">
+          <i class="fa-solid fa-calendar-days"></i>
+        </div>
+        <div class="text-secondary small text-uppercase fw-bold letter-spacing">Due In Next 7 Days</div>
+        <div class="fs-3 fw-bolder text-info my-1"><%= stats.upcomingCount %></div>
+        <div class="small text-secondary">Upcoming schedules</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Upcoming Reminders List -->
+    <div class="col-lg-5">
+      <div class="glass-card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-white mb-0">
+            <i class="fa-solid fa-clock text-warning me-2"></i> Due This Week
+          </h5>
+          <span class="badge bg-warning bg-opacity-25 text-warning rounded-pill px-3 py-1">
+            <%= upcomingReminders.length %> Due
+          </span>
+        </div>
+
+        <% if (upcomingReminders.length > 0) { %>
+          <div class="d-flex flex-column gap-3">
+            <% upcomingReminders.forEach(item => { %>
+              <div class="p-3 rounded-3 d-flex align-items-center justify-content-between" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05);">
+                <div>
+                  <div class="fw-bold text-white"><%= item.name %></div>
+                  <div class="small text-secondary">Due: <%= item.formattedDueDate %></div>
+                </div>
+                <div class="text-end">
+                  <div class="fw-bold text-warning">₹<%= formatINR(item.amount) %></div>
+                  <button class="btn btn-sm btn-outline-warning rounded-pill mt-1 py-0 px-2" onclick="sendReminderAjax('<%= item._id %>', this)">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Remind
+                  </button>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="text-center py-4 text-secondary">
+            <i class="fa-solid fa-circle-check fs-2 text-success mb-2"></i>
+            <p class="mb-0">No dues coming up this week!</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Recent Customer Records -->
+    <div class="col-lg-7">
+      <div class="glass-card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-white mb-0">
+            <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Recent Activity
+          </h5>
+          <a href="/customers" class="small text-primary text-decoration-none">View All</a>
+        </div>
+
+        <% if (recentCustomers.length > 0) { %>
+          <div class="table-responsive">
+            <table class="table table-dark table-borderless align-middle mb-0" style="background: transparent;">
+              <thead>
+                <tr class="text-secondary small text-uppercase" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% recentCustomers.forEach(customer => { %>
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                    <td>
+                      <div class="fw-semibold text-white"><%= customer.name %></div>
+                      <div class="small text-secondary"><%= customer.email %></div>
+                    </td>
+                    <td class="fw-bold text-white">₹<%= formatINR(customer.amount) %></td>
+                    <td>
+                      <% if (customer.isPaid) { %>
+                        <span class="badge-status badge-paid">
+                          <i class="fa-solid fa-check"></i> Paid
+                        </span>
+                      <% } else if (customer.isOverdue) { %>
+                        <span class="badge-status badge-overdue">
+                          <i class="fa-solid fa-exclamation"></i> Overdue
+                        </span>
+                      <% } else { %>
+                        <span class="badge-status badge-pending">
+                          <i class="fa-solid fa-clock"></i> Pending
+                        </span>
+                      <% } %>
+                    </td>
+                    <td class="text-end">
+                      <% if (!customer.isPaid) { %>
+                        <a href="/pay/<%= customer._id %>" class="btn btn-sm btn-success-gradient rounded-pill px-3 py-1">
+                          Pay
+                        </a>
+                      <% } else { %>
+                        <span class="text-secondary small">Settled</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="text-center py-4 text-secondary">
+            <p class="mb-0">No records found. <a href="/add" class="text-primary">Add a customer</a> to get started.</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
